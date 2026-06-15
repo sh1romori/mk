@@ -1,0 +1,84 @@
+CREATE TABLE Users (
+    UserId INT IDENTITY(1,1) PRIMARY KEY,
+    Login VARCHAR(50) NOT NULL UNIQUE,
+    Password VARCHAR(50) NOT NULL,
+    Role VARCHAR(20) NOT NULL,
+    IsLocked BIT NOT NULL DEFAULT 0,
+    FailedAttempts INT NOT NULL DEFAULT 0
+);
+
+INSERT INTO Users (Login, Password, Role, IsLocked, FailedAttempts) 
+VALUES ('admin', 'admin', 'Администратор', 0, 0);
+
+
+CREATE TABLE items (
+    item_id INT IDENTITY(1,1) PRIMARY KEY,
+    item_code VARCHAR(50) NOT NULL UNIQUE,
+    item_name VARCHAR(255) NOT NULL,
+    unit VARCHAR(20) NOT NULL
+);
+
+CREATE TABLE customers (
+    customer_id INT IDENTITY(1,1) PRIMARY KEY,
+    customer_code VARCHAR(50) NULL UNIQUE,
+    customer_name VARCHAR(255) NOT NULL,
+    inn VARCHAR(12) NULL,
+    address VARCHAR(MAX) NULL,
+    phone VARCHAR(20) NULL,
+    is_salesman BIT NOT NULL DEFAULT 0,
+    is_buyer BIT NOT NULL DEFAULT 0
+);
+
+CREATE TABLE orders (
+    order_id INT IDENTITY(1,1) PRIMARY KEY,
+    order_number VARCHAR(50) NOT NULL,
+    order_date DATE NOT NULL,
+    customer_id INT NOT NULL,
+    CONSTRAINT fk_orders_customer FOREIGN KEY (customer_id) REFERENCES customers(customer_id)
+);
+
+CREATE TABLE order_details (
+    order_detail_id INT IDENTITY(1,1) PRIMARY KEY,
+    order_id INT NOT NULL,
+    item_id INT NOT NULL,
+    quantity DECIMAL(10, 3) NOT NULL,
+    price_fact DECIMAL(10, 2) NOT NULL,
+    CONSTRAINT fk_details_order FOREIGN KEY (order_id) REFERENCES orders(order_id) ON DELETE CASCADE,
+    CONSTRAINT fk_details_item FOREIGN KEY (item_id) REFERENCES items(item_id)
+);
+
+CREATE TABLE specifications (
+    specification_id INT IDENTITY(1,1) PRIMARY KEY,
+    specification_name VARCHAR(255) NOT NULL,
+    product_id INT NOT NULL,
+    release_quantity DECIMAL(10, 3) NOT NULL,
+    CONSTRAINT fk_spec_product FOREIGN KEY (product_id) REFERENCES items(item_id) ON DELETE CASCADE
+);
+
+CREATE TABLE specification_details (
+    spec_detail_id INT IDENTITY(1,1) PRIMARY KEY,
+    specification_id INT NOT NULL,
+    material_id INT NOT NULL,
+    quantity_required DECIMAL(10, 3) NOT NULL,
+    CONSTRAINT fk_spec_det_parent FOREIGN KEY (specification_id) REFERENCES specifications(specification_id) ON DELETE CASCADE,
+    CONSTRAINT fk_spec_det_material FOREIGN KEY (material_id) REFERENCES items(item_id)
+);
+
+CREATE TABLE production_logs (
+    production_id INT IDENTITY(1,1) PRIMARY KEY,
+    production_number VARCHAR(50) NOT NULL,
+    production_date DATE NOT NULL,
+    product_id INT NOT NULL,
+    quantity_produced DECIMAL(10, 3) NOT NULL,
+    CONSTRAINT fk_prod_log_product FOREIGN KEY (product_id) REFERENCES items(item_id)
+);
+
+CREATE TABLE production_materials (
+    prod_material_id INT IDENTITY(1,1) PRIMARY KEY,
+    production_id INT NOT NULL,
+    material_id INT NOT NULL,
+    quantity_used DECIMAL(10, 3) NOT NULL,
+    CONSTRAINT fk_prod_mat_log FOREIGN KEY (production_id) REFERENCES production_logs(production_id) ON DELETE CASCADE,
+    CONSTRAINT fk_prod_mat_item FOREIGN KEY (material_id) REFERENCES items(item_id)
+);
+GO

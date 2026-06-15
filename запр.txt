@@ -1,0 +1,14 @@
+SELECT 
+    o.order_id,
+    o.order_number,
+    -- Умножаем количество товара в заказе на норму материала и на его цену
+    SUM(od.quantity * sd.quantity_required * i.price) AS total_materials_cost
+FROM orders o
+JOIN order_details od ON o.order_id = od.order_id
+JOIN specifications s ON od.item_id = s.product_id
+JOIN specification_details sd ON s.specification_id = sd.specification_id
+JOIN items i ON sd.material_id = i.item_id
+WHERE o.order_id = 2
+GROUP BY o.order_id, o.order_number;
+
+Scaffold-DbContext "Server=DESKTOP-H2Q7LMK\SQLEXPRESS;Database=ss;Trusted_Connection=True;TrustServerCertificate=True;" Microsoft.EntityFrameworkCore.SqlServer -OutputDir Models -Force
